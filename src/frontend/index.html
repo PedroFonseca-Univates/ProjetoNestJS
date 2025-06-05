@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Usuários - NestJS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #e1e8ff;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ff;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-edit {
+            background: #28a745;
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-edit:hover {
+            background: #218838;
+        }
+
+        .users-table {
+            margin-top: 30px;
+        }
+
+        .users-table h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filters select {
+            padding: 8px 12px;
+            border: 2px solid #e1e8ff;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CRUD Usuários</h1>
+            <p>Gerenciamento completo de usuários com NestJS</p>
+        </div>
+
+        <div class="content">
+            <!-- Alertas -->
+            <div id="alerts"></div>
+
+            <!-- Formulário -->
+            <div class="form-section">
+                <h2 id="formTitle">➕ Adicionar Novo Usuário</h2>
+                <form id="userForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Nome completo:</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-mail:</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Idade:</label>
+                            <input type="number" id="age" name="age" min="1" max="120">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="isActive">Status:</label>
+                        <select id="isActive" name="isActive">
+                            <option value="true">Ativo</option>
+                            <option value="false">Inativo</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        ✅ Salvar Usuário
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">
+                        ❌ Cancelar
+                    </button>
+                </form>
+            </div>
+
+            <!-- Lista de usuários -->
+            <div class="users-table">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>👥 Lista de Usuários</h2>
+                    <div class="filters">
+                        <select id="statusFilter">
+                            <option value="">Todos os usuários</option>
+                            <option value="true">Apenas ativos</option>
+                            <option value="false">Apenas inativos</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="loadUsers()">
+                            🔄 Atualizar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div id="loading" class="loading" style="display: none;">
+                        Carregando usuários...
+                    </div>
+                    <table id="usersTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Idade</th>
+                                <th>Status</th>
+                                <th>Criado em</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                        </tbody>
+                    </table>
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <h3>📝 Nenhum usuário encontrado</h3>
+                        <p>Adicione o primeiro usuário usando o formulário acima.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        let editingUserId = null;
+
+        // Elementos do DOM
+        const userForm = document.getElementById('userForm');
+        const formTitle = document.getElementById('formTitle');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const usersTable = document.getElementById('usersTable');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const loading = document.getElementById('loading');
+        const emptyState = document.getElementById('emptyState');
+        const statusFilter = document.getElementById('statusFilter');
+        const alerts = document.getElementById('alerts');
+
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            userForm.addEventListener('submit', handleSubmit);
+            cancelBtn.addEventListener('click', cancelEdit);
+            statusFilter.addEventListener('change', loadUsers);
+        }
+
+        // Mostrar alertas
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alerts.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Carregar usuários
+        async function loadUsers() {
+            loading.style.display = 'block';
+            usersTable.style.display = 'none';
+            emptyState.style.display = 'none';
+
+            try {
+                const filter = statusFilter.value;
+                let url = `${API_BASE_URL}/users`;
+                if (filter) {
+                    url += `?active=${filter}`;
+                }
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar usuários');
+                }
+
+                const users = await response.json();
+                displayUsers(users);
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro ao carregar usuários. Verifique se a API está rodando.', 'error');
+                emptyState.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Exibir usuários na tabela
+        function displayUsers(users) {
+            if (users.length === 0) {
+                emptyState.style.display = 'block';
+                usersTable.style.display = 'none';
+                return;
+            }
+
+            usersTableBody.innerHTML = '';
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.age || '-'}</td>
+                    <td>
+                        <span class="status-badge ${user.isActive ? 'status-active' : 'status-inactive'}">
+                            ${user.isActive ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td>${new Date(user.createdAt).toLocaleDateString('pt-BR')}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editUser(${user.id})">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteUser(${user.id})">
+                            🗑️ Excluir
+                        </button>
+                    </td>
+                `;
+                usersTableBody.appendChild(row);
+            });
+
+            usersTable.style.display = 'table';
+            emptyState.style.display = 'none';
+        }
+
+        // Manipular envio do formulário
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const formData = new FormData(userForm);
+            const userData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                age: formData.get('age') ? parseInt(formData.get('age')) : null,
+                isActive: formData.get('isActive') === 'true'
+            };
+
+            try {
+                let response;
+                if (editingUserId) {
+                    // Atualizar usuário
+                    response = await fetch(`${API_BASE_URL}/users/${editingUserId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(userData),
+                    });
+                } else {
+                    // Criar novo usuário
+                    response = await fetch(`${API_BASE_URL}/users`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(userData),
+                    });
+                }
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erro ao salvar usuário');
+                }
+
+                showAlert(editingUserId ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!');
+                resetForm();
+                loadUsers();
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // Editar usuário
+        async function editUser(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}`);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar usuário');
+                }
+
+                const user = await response.json();
+                
+                // Preencher formulário
+                document.getElementById('name').value = user.name;
+                document.getElementById('email').value = user.email;
+                document.getElementById('age').value = user.age || '';
+                document.getElementById('isActive').value = user.isActive.toString();
+
+                // Alterar interface para modo edição
+                editingUserId = id;
+                formTitle.textContent = '✏️ Editar Usuário';
+                submitBtn.textContent = '💾 Atualizar Usuário';
+                cancelBtn.style.display = 'inline-block';
+
+                // Scroll para o formulário
+                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro ao carregar dados do usuário', 'error');
+            }
+        }
+
+        // Deletar usuário
+        async function deleteUser(id) {
+            if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao excluir usuário');
+                }
+
+                showAlert('Usuário excluído com sucesso!');
+                loadUsers();
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro ao excluir usuário', 'error');
+            }
+        }
+
+        // Cancelar edição
+        function cancelEdit() {
+            resetForm();
+        }
+
+        // Resetar formulário
+        function resetForm() {
+            userForm.reset();
+            editingUserId = null;
+            formTitle.textContent = '➕ Adicionar Novo Usuário';
+            submitBtn.textContent = '✅ Salvar Usuário';
+            cancelBtn.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
