@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
+import { FilmesModule } from './filmes/filmes.module';
 
 @Module({
   imports: [
@@ -9,16 +9,12 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'password',
-      database: 'nestjs_crud',
+      type: 'sqlite',
+      database: 'banco.db', // Arquivo do banco SQLite
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // Apenas para desenvolvimento
     }),
-    UsersModule,
+    FilmesModule,
   ],
 })
 export class AppModule {}

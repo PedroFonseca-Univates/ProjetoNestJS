@@ -1,21 +1,24 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('users')
-export class User {
+@Entity('filmes')
+export class Filme {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 100 })
-  name: string;
+  @Column()
+  nome: string;
 
-  @Column({ unique: true })
-  email: string;
+  @Column()
+  descricao: string;
 
-  @Column({ nullable: true })
-  age: number;
+  @Column()
+  genero: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column()
+  duracao: number;
+
+  @Column()
+  anolancamento: number;
 
   @CreateDateColumn()
   createdAt: Date;
