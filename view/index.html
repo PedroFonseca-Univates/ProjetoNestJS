@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Filmes</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+
+        h1 { text-align: center; }
+
+        .form-section { border: 1px solid #ddd; padding: 15px; margin: 20px 0; }
+
+        .form-row { display: flex; gap: 10px; margin: 10px 0; }
+
+        .form-group { flex: 1; }
+
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+
+        input, select, textarea { width: 100%; padding: 5px; border: 1px solid #ccc; }
+
+        textarea { height: 60px; }
+
+        button { padding: 8px 15px; margin: 5px; cursor: pointer; }
+
+        .btn-primary { background: #007bff; color: white; border: none; }
+
+        .btn-danger { background: #dc3545; color: white; border: none; }
+
+        .btn-warning { background: #ffc107; border: none; }
+
+        .btn-secondary { background: #6c757d; color: white; border: none; }
+
+        .movies { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+
+        .movie { border: 1px solid #ddd; padding: 10px; }
+
+        .message { padding: 10px; margin: 10px 0; }
+
+        .error { background: #f8d7da; color: #721c24; }
+
+        .success { background: #d4edda; color: #155724; }
+        
+        @media (max-width: 600px) { .form-row { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <h1>Gerenciamento de Filmes</h1>
+    
+    <div id="message"></div>
+
+    <div class="form-section">
+        <h3 id="form-title">Cadastrar Filme</h3>
+        <form id="form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nome *</label>
+                    <input type="text" id="nome" required>
+                </div>
+                <div class="form-group">
+                    <label>Gênero *</label>
+                    <select id="genero" required>
+                        <option value="">Selecione</option>
+                        <option>Ação</option><option>Comédia</option><option>Drama</option>
+                        <option>Terror</option><option>Romance</option><option>Ficção Científica</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Duração (min) *</label>
+                    <input type="number" id="duracao" required>
+                </div>
+                <div class="form-group">
+                    <label>Ano *</label>
+                    <input type="number" id="anolancamento" min="1900" max="2030" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descrição *</label>
+                <textarea id="descricao" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary" id="submit-btn">Cadastrar</button>
+            <button type="button" class="btn-secondary" id="cancel-btn" style="display:none">Cancelar</button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h3>Lista de Filmes</h3>
+        <div id="movies">Carregando...</div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/filmes';
+        let editId = null;
+        
+        const form = document.getElementById('form');
+        const movies = document.getElementById('movies');
+        const message = document.getElementById('message');
+
+        // Inicializar
+        loadMovies();
+        form.onsubmit = handleSubmit;
+        document.getElementById('cancel-btn').onclick = cancelEdit;
+
+        // Carregar filmes
+        async function loadMovies() {
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                displayMovies(data);
+            } catch (error) {
+                showMessage('Erro ao carregar filmes', 'error');
+                displayMovies([]);
+            }
+        }
+
+        // Exibir filmes
+        function displayMovies(data) {
+            if (data.length === 0) {
+                movies.innerHTML = '<p>Nenhum filme cadastrado</p>';
+                return;
+            }
+            
+            movies.innerHTML = `<div class="movies">${data.map(movie => `
+                <div class="movie">
+                    <h4>${movie.nome}</h4>
+                    <p><b>Gênero:</b> ${movie.genero}</p>
+                    <p><b>Duração:</b> ${movie.duracao} min</p>
+                    <p><b>Ano:</b> ${movie.anolancamento}</p>
+                    <p><b>Descrição:</b> ${movie.descricao}</p>
+                    <button class="btn-warning" onclick="editMovie(${movie.id})">Editar</button>
+                    <button class="btn-danger" onclick="deleteMovie(${movie.id})">Excluir</button>
+                </div>
+            `).join('')}</div>`;
+        }
+
+        // Enviar formulário
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const data = {
+                nome: document.getElementById('nome').value,
+                genero: document.getElementById('genero').value,
+                duracao: parseInt(document.getElementById('duracao').value),
+                anolancamento: parseInt(document.getElementById('anolancamento').value),
+                descricao: document.getElementById('descricao').value
+            };
+
+            try {
+                const url = editId ? `${API}/${editId}` : API;
+                const method = editId ? 'PATCH' : 'POST';
+                
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                showMessage(editId ? 'Filme atualizado!' : 'Filme cadastrado!', 'success');
+                form.reset();
+                cancelEdit();
+                loadMovies();
+            } catch (error) {
+                showMessage('Erro ao salvar filme', 'error');
+            }
+        }
+
+        // Editar filme
+        async function editMovie(id) {
+            try {
+                const res = await fetch(`${API}/${id}`);
+                const movie = await res.json();
+                
+                document.getElementById('nome').value = movie.nome;
+                document.getElementById('genero').value = movie.genero;
+                document.getElementById('duracao').value = movie.duracao;
+                document.getElementById('anolancamento').value = movie.anolancamento;
+                document.getElementById('descricao').value = movie.descricao;
+                
+                editId = id;
+                document.getElementById('form-title').textContent = 'Editar Filme';
+                document.getElementById('submit-btn').textContent = 'Atualizar';
+                document.getElementById('cancel-btn').style.display = 'inline';
+            } catch (error) {
+                showMessage('Erro ao carregar filme', 'error');
+            }
+        }
+
+        // Cancelar edição
+        function cancelEdit() {
+            editId = null;
+            document.getElementById('form-title').textContent = 'Cadastrar Filme';
+            document.getElementById('submit-btn').textContent = 'Cadastrar';
+            document.getElementById('cancel-btn').style.display = 'none';
+            form.reset();
+        }
+
+        // Excluir filme
+        async function deleteMovie(id) {
+            if (!confirm('Excluir filme?')) return;
+            
+            try {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                showMessage('Filme excluído!', 'success');
+                loadMovies();
+            } catch (error) {
+                showMessage('Erro ao excluir filme', 'error');
+            }
+        }
+
+        // Mostrar mensagem
+        function showMessage(text, type) {
+            message.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => message.innerHTML = '', 3000);
+        }
+    </script>
+</body>
+</html>
